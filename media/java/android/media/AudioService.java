@@ -4966,18 +4966,14 @@ public class AudioService extends IAudioService.Stub {
             connType = AudioRoutesInfo.MAIN_HEADSET;
             intent.setAction(Intent.ACTION_HEADSET_PLUG);
             intent.putExtra("microphone", 1);
-            if (state == 1) {
-                startMusicPlayer();
-            }
+            startMusicPlayer();
         } else if (device == AudioSystem.DEVICE_OUT_WIRED_HEADPHONE ||
                    device == AudioSystem.DEVICE_OUT_LINE) {
             /*do apps care about line-out vs headphones?*/
             connType = AudioRoutesInfo.MAIN_HEADPHONES;
             intent.setAction(Intent.ACTION_HEADSET_PLUG);
             intent.putExtra("microphone", 0);
-            if (state == 1) {
-                startMusicPlayer();
-            }
+            startMusicPlayer();
         } else if (device == AudioSystem.DEVICE_OUT_ANLG_DOCK_HEADSET) {
             connType = AudioRoutesInfo.MAIN_DOCK_SPEAKERS;
             intent.setAction(AudioManager.ACTION_ANALOG_AUDIO_DOCK_PLUG);
