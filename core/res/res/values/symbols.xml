@@ -2322,6 +2322,7 @@
 
   <!-- Config.xml entries -->
   <java-symbol type="integer" name="config_backKillTimeout" />
+  <java-symbol type="bool" name="config_samsung_stk" />
 
   <!-- ADB notification -->
   <java-symbol type="string" name="adb_net_active_notification_title" />
