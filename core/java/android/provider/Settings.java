@@ -4096,7 +4096,13 @@ public final class Settings {
                 "pie_buttons_config_second_layer";
 
         /**
->>>>>>> 91d59bb... Base: SlimPie (1/2)
+         * Whether pie triggers on the left and right edge should be reduced if IME shows up.
+         * Default = 1 (enabled)
+         * @hide
+         */
+        public static final String PIE_IME_CONTROL = "pie_ime_control";
+
+        /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
          *
