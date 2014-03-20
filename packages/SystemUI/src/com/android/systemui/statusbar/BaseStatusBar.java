@@ -104,6 +104,7 @@ import com.android.systemui.SystemUI;
 import com.android.systemui.cm.SpamMessageProvider;
 import com.android.systemui.statusbar.NotificationData.Entry;
 import com.android.systemui.statusbar.NotificationData.Entry;
+import com.android.systemui.statusbar.appcirclesidebar.AppCircleSidebar;
 import com.android.systemui.statusbar.phone.NavigationBarView;
 import com.android.systemui.statusbar.phone.StatusBarKeyguardViewManager;
 import com.android.systemui.statusbar.policy.HeadsUpNotificationView;
@@ -248,6 +249,8 @@ public abstract class BaseStatusBar extends SystemUI implements
 
     private ArrayList<String> mDndList;
     private ArrayList<String> mBlacklist;
+
+    protected AppCircleSidebar mAppCircleSidebar;
 
     // which notification is currently being longpress-examined by the user
     private NotificationGuts mNotificationGutsExposed;
@@ -2372,4 +2375,40 @@ public abstract class BaseStatusBar extends SystemUI implements
         }
         return mStatusBarKeyguardViewManager.isSecure();
     }
+
+    protected void addAppCircleSidebar() {
+        if (mAppCircleSidebar == null) {
+            mAppCircleSidebar = (AppCircleSidebar) View.inflate(mContext, R.layout.app_circle_sidebar, null);
+            mWindowManager.addView(mAppCircleSidebar, getAppCircleSidebarLayoutParams());
+        }
+    }
+
+    protected void removeAppCircleSidebar() {
+        if (mAppCircleSidebar != null) {
+            mWindowManager.removeView(mAppCircleSidebar);
+        }
+    }
+
+    protected WindowManager.LayoutParams getAppCircleSidebarLayoutParams() {
+        int maxWidth =
+                mContext.getResources().getDimensionPixelSize(R.dimen.app_sidebar_trigger_width);
+
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
+                maxWidth,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.TYPE_STATUS_BAR_SUB_PANEL,
+                0
+                | WindowManager.LayoutParams.FLAG_TOUCHABLE_WHEN_WAKING
+                | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+                | WindowManager.LayoutParams.FLAG_SPLIT_TOUCH,
+                PixelFormat.TRANSLUCENT);
+        lp.privateFlags |= WindowManager.LayoutParams.PRIVATE_FLAG_NO_MOVE_ANIMATION;
+        lp.gravity = Gravity.TOP | Gravity.RIGHT;
+        lp.setTitle("AppCircleSidebar");
+
+        return lp;
+    }
+>>>>>>> 707f194... [1/2] Base: implement App circle sidebar
 }
