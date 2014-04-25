@@ -78,4 +78,7 @@
     <string name="adb_both_active_notification_title">ADB over USB &amp; network enabled</string>
     <!-- ADB notification message-->
     <string name="adb_active_generic_notification_message">Touch to disable debugging.</string>
+
+    <!-- Title of an application permission, listed so the user can choose whether they want the application to do this. -->
+    <string name="permlab_setKeyguardWallpaper">set keyguard wallpaper</string>
 </resources>
