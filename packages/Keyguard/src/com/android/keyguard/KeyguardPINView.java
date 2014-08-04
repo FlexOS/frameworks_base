@@ -32,8 +32,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import com.android.keyguard.PasswordTextView.QuickUnlockListener;
-
 /**
  * Displays a PIN pad for unlocking.
  */
@@ -49,6 +47,8 @@ public class KeyguardPINView extends KeyguardPinBasedInputView {
     private View mDivider;
     private int mDisappearYTranslation;
     private View[][] mViews;
+
+    private static List<Integer> sNumbers = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 0);
 
     private static List<Integer> sNumbers = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 0);
 
@@ -106,31 +106,6 @@ public class KeyguardPINView extends KeyguardPinBasedInputView {
         mRow2 = (ViewGroup) findViewById(R.id.row2);
         mRow3 = (ViewGroup) findViewById(R.id.row3);
         mDivider = findViewById(R.id.divider);
-        mViews = new View[][]{
-                new View[]{
-                        mRow0, null, null
-                },
-                new View[]{
-                        findViewById(R.id.key1), findViewById(R.id.key2),
-                        findViewById(R.id.key3)
-                },
-                new View[]{
-                        findViewById(R.id.key4), findViewById(R.id.key5),
-                        findViewById(R.id.key6)
-                },
-                new View[]{
-                        findViewById(R.id.key7), findViewById(R.id.key8),
-                        findViewById(R.id.key9)
-                },
-                new View[]{
-                        null, findViewById(R.id.key0), findViewById(R.id.key_enter)
-                },
-                new View[]{
-                        null, mEcaView, null
-                }};
-
-        boolean quickUnlock = (Settings.System.getInt(getContext().getContentResolver(),
-                Settings.System.LOCKSCREEN_QUICK_UNLOCK_CONTROL, 0) == 1);
 
         boolean scramblePin = (Settings.System.getInt(getContext().getContentResolver(),
                 Settings.System.LOCKSCREEN_PIN_SCRAMBLE_LAYOUT, 0) == 1);
@@ -157,16 +132,6 @@ public class KeyguardPINView extends KeyguardPinBasedInputView {
                 NumPadKey view = views.get(i);
                 view.setDigit(sNumbers.get(i));
             }
-        }
-
-        if (quickUnlock) {
-            mPasswordEntry.setQuickUnlockListener(new QuickUnlockListener() {
-                public void onValidateQuickUnlock(String password) {
-                    validateQuickUnlock(password);
-                }
-            });
-        } else {
-            mPasswordEntry.setQuickUnlockListener(null);
         }
     }
 
