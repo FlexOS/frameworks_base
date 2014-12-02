@@ -17,6 +17,9 @@
 package com.android.internal.util.flex;
 
 import android.content.Context;
+import android.content.res.Resources;
+
+import java.util.Locale;
 
 public class FlexUtils {
 
@@ -24,4 +27,10 @@ public class FlexUtils {
         return context.getResources().getBoolean(
                 com.android.internal.R.bool.config_showNavigationBar);
     }
+
+    public static boolean isChineseLanguage() {
+       return Resources.getSystem().getConfiguration().locale.getLanguage().startsWith(
+               Locale.CHINESE.getLanguage());
+    }
+
 }
