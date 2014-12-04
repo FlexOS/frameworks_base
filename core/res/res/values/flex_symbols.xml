@@ -17,6 +17,9 @@
 -->
 <resources>
 
-    <java-symbol type="drawable" name="flex" />
+  <java-symbol type="drawable" name="flex" />
+
+  <!-- Hardware keys on/off option -->
+  <java-symbol type="bool" name="config_hwKeysPref" />
 
 </resources>
