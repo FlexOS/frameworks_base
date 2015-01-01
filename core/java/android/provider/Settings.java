@@ -3737,6 +3737,12 @@ public final class Settings {
         public static final String ANIMATION_CONTROLS_EXIT_ONLY = "animation_controls_exit_only";
         public static final String ANIMATION_CONTROLS_REVERSE_EXIT = "animation_controls_reverse_exit";
 
+        /** Whether to vibrate when quick settings tile is pressed.
+         *
+         * @hide
+         */
+        public static final String QUICK_SETTINGS_TILES_VIBRATE = "quick_settings_vibrate";
+
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
