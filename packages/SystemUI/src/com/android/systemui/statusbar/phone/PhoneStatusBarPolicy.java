@@ -95,6 +95,7 @@ public class PhoneStatusBarPolicy {
     private final SuController mSuController;
     private boolean mAlarmIconVisible;
     private final HotspotController mHotspot;
+    private boolean mSuIndicatorVisible;
 
     // Assume it's all good unless we hear otherwise.  We don't always seem
     // to get broadcasts that it *is* there.
@@ -231,7 +232,13 @@ public class PhoneStatusBarPolicy {
         mService.setIconVisibility(SLOT_HOTSPOT, mHotspot.isHotspotEnabled());
         mHotspot.addCallback(mHotspotCallback);
 
+        mSuIndicatorObserver.onChange(true);
+        mContext.getContentResolver().registerContentObserver(
+                Settings.System.getUriFor(Settings.System.SHOW_SU_INDICATOR),
+                false, mSuIndicatorObserver);
+
         QSUtils.registerObserverForQSChanges(mContext, mQSListener);
+
     }
 
     private ContentObserver mAlarmIconObserver = new ContentObserver(null) {
@@ -240,6 +247,20 @@ public class PhoneStatusBarPolicy {
             mAlarmIconVisible = Settings.System.getInt(mContext.getContentResolver(),
                     Settings.System.SHOW_ALARM_ICON, 1) == 1;
             updateAlarm();
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            onChange(selfChange, null);
+        }
+    };
+
+    private ContentObserver mSuIndicatorObserver = new ContentObserver(null) {
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            mSuIndicatorVisible = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.SHOW_SU_INDICATOR, 1) == 1;
+            updateSu();
         }
 
         @Override
@@ -432,6 +453,10 @@ public class PhoneStatusBarPolicy {
             mService.setIconVisibility(SLOT_HOTSPOT, enabled);
         }
     };
+
+    private void updateSu() {
+        mService.setIconVisibility(SLOT_SU, mSuController.hasActiveSessions() && mSuIndicatorVisible);
+    }
 
     private final CastController.Callback mCastCallback = new CastController.Callback() {
         @Override
