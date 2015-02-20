@@ -3654,6 +3654,12 @@ public final class Settings {
                 "volume_keys_control_ring_stream";
 
         /**
+         *  Enable navigation bar double tap gesture on to put device to sleep
+         * @hide
+         */
+        public static final String DOUBLE_TAP_SLEEP_NAVBAR = "double_tap_sleep_navbar";
+
+        /**
          * The statusbar configuration to be used for its creation in SystemUI
          * Fallback is the config_statusBarComponent value
          * @hide
