@@ -3934,6 +3934,8 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
      * meantime, just update the things that we know change.
      */
     void updateResources(Configuration newConfig) {
+        ContentResolver resolver = mContext.getContentResolver();
+
         // detect theme change.
         ThemeConfig newTheme = newConfig != null ? newConfig.themeConfig : null;
         final boolean updateStatusBar = shouldUpdateStatusbar(mCurrentTheme, newTheme);
@@ -3941,6 +3943,12 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         if (updateStatusBar) {
             mContext.recreateTheme();
             recreateStatusBar();
+
+            // detect status bar carrier state when theme change.
+            mShowStatusBarCarrier = Settings.System.getInt(
+                    resolver, Settings.System.STATUS_BAR_CARRIER, 0) == 1;
+            showStatusBarCarrierLabel(mShowStatusBarCarrier);
+
         } else {
             loadDimens();
         }
