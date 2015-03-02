@@ -434,6 +434,12 @@ public class RecentsView extends FrameLayout implements TaskStackView.TaskStackV
         setMeasuredDimension(width, height);
     }
 
+    public void noUserInteraction() {
+        if (mFloatingButton != null) {
+            mFloatingButton.setVisibility(View.VISIBLE);
+        }
+    }
+
     private boolean showMemDisplay() {
         boolean enableMemDisplay = Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.SYSTEMUI_RECENTS_MEM_DISPLAY, 0) == 1;
@@ -487,6 +493,11 @@ public class RecentsView extends FrameLayout implements TaskStackView.TaskStackV
             Settings.System.RECENTS_CLEAR_ALL_DISMISS_ALL, 1) == 1;
     }
 
+    private boolean dismissAll() {
+        return Settings.System.getInt(mContext.getContentResolver(),
+            Settings.System.RECENTS_CLEAR_ALL_DISMISS_ALL, 1) == 1;
+    }
+
     @Override
     protected void onAttachedToWindow () {
         super.onAttachedToWindow();
@@ -501,6 +512,21 @@ public class RecentsView extends FrameLayout implements TaskStackView.TaskStackV
 
                 if (dismissAll()) {
                     startHideClearRecentsButtonAnimation();
+                    // Hide clear recents before dismiss all tasks
+                    mFloatingButton.animate()
+                        .alpha(0f)
+                        .setStartDelay(0)
+                        .setUpdateListener(null)
+                        .setInterpolator(mConfig.fastOutSlowInInterpolator)
+                        .setDuration(mConfig.taskViewRemoveAnimDuration)
+                        .withEndAction(new Runnable() {
+                            @Override
+                            public void run() {
+                                mFloatingButton.setVisibility(View.GONE);
+                                mFloatingButton.setAlpha(1f);
+                            }
+                        })
+                        .start();
                 }
 
                 dismissAllTasksAnimated();
