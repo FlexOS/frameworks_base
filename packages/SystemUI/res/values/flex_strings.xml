@@ -33,5 +33,7 @@
     <string name="quick_settings_screenshot">Screenshot</string>
     <string name="quick_settings_navbar_on">NavBar On</string>
     <string name="quick_settings_navbar_off">NavBar Off</string>
+    <string name="quick_settings_music_play">Play</string>
+    <string name="quick_settings_music_pause">Pause</string>
 
 </resources>
