@@ -3185,7 +3185,7 @@ public final class PowerManagerService extends SystemService
             if (duration > 0 && duration <= MAX_CPU_BOOST_TIME) {
                 nativeCpuBoost(duration);
             } else {
-                Log.e(TAG, "Invalid boost duration: " + duration);
+                Slog.e(TAG, "Invalid boost duration: " + duration);
             }
         }
 
