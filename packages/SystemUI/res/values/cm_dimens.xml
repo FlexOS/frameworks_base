@@ -37,4 +37,6 @@
     <!-- Padding end for weather text -->
     <dimen name="status_bar_weather_padding_end">16dp</dimen>
 
+    <dimen name="ribbon_drag_handle_height">25dp</dimen>
+
 </resources>

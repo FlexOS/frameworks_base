@@ -138,6 +138,7 @@ import com.android.internal.util.cm.ActionUtils;
 import com.android.keyguard.KeyguardHostView.OnDismissAction;
 import com.android.keyguard.ViewMediatorCallback;
 import com.android.systemui.BatteryMeterView;
+import com.android.systemui.flex.SearchPanelSwipeView;
 import com.android.systemui.BatteryLevelTextView;
 import com.android.systemui.DemoMode;
 import com.android.systemui.EventLogConstants;
@@ -626,6 +627,8 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
     private ScrimController mScrimController;
     private DozeScrimController mDozeScrimController;
 
+    private SearchPanelSwipeView mSearchPanelSwipeView;
+
     private final Runnable mAutohide = new Runnable() {
         @Override
         public void run() {
@@ -920,6 +923,17 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
                 return false;
             }
         });
+
+        try {
+            boolean showNav = mWindowManagerService.hasNavigationBar();
+            if (!showNav) {
+                mSearchPanelSwipeView = new SearchPanelSwipeView(mContext, this);
+                mWindowManager.addView(mSearchPanelSwipeView, mSearchPanelSwipeView.getGesturePanelLayoutParams());
+                updateSearchPanel();
+            }
+        } catch (RemoteException ex) {
+            // no window manager? good luck with that
+        }
 
         // figure out which pixel-format to use for the status bar.
         mPixelFormat = PixelFormat.OPAQUE;
@@ -1344,6 +1358,9 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         if (mNavigationBarView != null) {
             mNavigationBarView.setDelegateView(mSearchPanelView);
         }
+        if (mSearchPanelSwipeView != null) {
+            mSearchPanelSwipeView.setDelegateView(mSearchPanelView);
+        }
     }
 
     @Override
@@ -1511,6 +1528,13 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         prepareNavigationBarView(false);
 
         mWindowManager.updateViewLayout(mNavigationBarView, getNavigationBarLayoutParams());
+    }
+
+    private void repositionSearchPanelSwipeView() {
+        if (mSearchPanelSwipeView == null || !mSearchPanelSwipeView.isAttachedToWindow()) return;
+        mSearchPanelSwipeView.updateLayout();
+        mWindowManager.updateViewLayout(mSearchPanelSwipeView, mSearchPanelSwipeView.getGesturePanelLayoutParams());
+        updateSearchPanel();
     }
 
     private void notifyNavigationBarScreenOn(boolean screenOn) {
@@ -3651,6 +3675,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             }
             else if (Intent.ACTION_SCREEN_ON.equals(action)) {
                 mScreenOn = true;
+                repositionSearchPanelSwipeView();
                 notifyNavigationBarScreenOn(true);
             }
             else if (ACTION_DEMO.equals(action)) {
