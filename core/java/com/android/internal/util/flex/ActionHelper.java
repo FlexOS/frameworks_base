@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
-package com.android.internal.util.temasek;
+package com.android.internal.util.flex;
 
 import android.content.ContentResolver;
 import android.content.Context;

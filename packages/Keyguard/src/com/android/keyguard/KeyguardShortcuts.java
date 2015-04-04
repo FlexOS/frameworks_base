@@ -31,10 +31,10 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-import com.android.internal.util.temasek.AppHelper;
-import com.android.internal.util.temasek.ActionHelper;
-import com.android.internal.util.temasek.ActionConfig;
-import com.android.internal.util.temasek.Action;
+import com.android.internal.util.flex.AppHelper;
+import com.android.internal.util.flex.ActionHelper;
+import com.android.internal.util.flex.ActionConfig;
+import com.android.internal.util.flex.Action;
 import com.android.internal.widget.LockPatternUtils;
 
 import com.android.keyguard.R;
