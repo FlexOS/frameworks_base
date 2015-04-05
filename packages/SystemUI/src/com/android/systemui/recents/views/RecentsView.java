@@ -16,8 +16,6 @@
 
 package com.android.systemui.recents.views;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.app.ActivityOptions;
 import android.app.TaskStackBuilder;
 import android.content.ComponentName;
@@ -30,7 +28,6 @@ import android.net.Uri;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.AttributeSet;
-import android.view.ViewAnimationUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -399,36 +396,9 @@ public class RecentsView extends FrameLayout implements TaskStackView.TaskStackV
     }
 
     public void noUserInteraction() {
-        if (mFloatingButton != null) {
-            mFloatingButton.setVisibility(View.VISIBLE);
+        if (mClearRecents != null) {
+            mClearRecents.setVisibility(View.VISIBLE);
         }
-    }
-
-    public void startFABanimation() {
-        // Animate the action button in
-        mFloatingButton = ((View)getParent()).findViewById(R.id.floating_action_button);
-        mFloatingButton.animate().alpha(1f)
-                .setStartDelay(mConfig.taskBarEnterAnimDelay)
-                .setDuration(mConfig.taskBarEnterAnimDuration)
-                .setInterpolator(mConfig.fastOutLinearInInterpolator)
-                .withLayer()
-                .start();
-    }
-
-    public void endFABanimation() {
-        // Animate the action button away
-        mFloatingButton = ((View)getParent()).findViewById(R.id.floating_action_button);
-        mFloatingButton.animate().alpha(0f)
-                .setStartDelay(0)
-                .setDuration(mConfig.taskBarExitAnimDuration)
-                .setInterpolator(mConfig.fastOutLinearInInterpolator)
-                .withLayer()
-                .start();
-    }
-
-    private boolean dismissAll() {
-        return Settings.System.getInt(mContext.getContentResolver(),
-            Settings.System.RECENTS_CLEAR_ALL_DISMISS_ALL, 1) == 1;
     }
 
     @Override
@@ -437,29 +407,26 @@ public class RecentsView extends FrameLayout implements TaskStackView.TaskStackV
         mFloatingButton = ((View)getParent()).findViewById(R.id.floating_action_button);
         mClearRecents = ((View)getParent()).findViewById(R.id.clear_recents);
         mClearRecents.setOnClickListener(new View.OnClickListener() {
-
             public void onClick(View v) {
-                if (mFloatingButton.getAlpha() != 1f) {
+                if (mClearRecents.getAlpha() != 1f) {
                     return;
                 }
 
-                if (dismissAll()) {
-                    // Hide clear recents before dismiss all tasks
-                    mFloatingButton.animate()
-                        .alpha(0f)
-                        .setStartDelay(0)
-                        .setUpdateListener(null)
-                        .setInterpolator(mConfig.fastOutSlowInInterpolator)
-                        .setDuration(mConfig.taskViewRemoveAnimDuration)
-                        .withEndAction(new Runnable() {
-                            @Override
-                            public void run() {
-                                mFloatingButton.setVisibility(View.GONE);
-                                mFloatingButton.setAlpha(1f);
-                            }
-                        })
-                        .start();
-                }
+                // Hide clear recents before dismiss all tasks
+                mClearRecents.animate()
+                    .alpha(0f)
+                    .setStartDelay(0)
+                    .setUpdateListener(null)
+                    .setInterpolator(mConfig.fastOutSlowInInterpolator)
+                    .setDuration(mConfig.taskViewRemoveAnimDuration)
+                    .withEndAction(new Runnable() {
+                        @Override
+                        public void run() {
+                            mClearRecents.setVisibility(View.GONE);
+                            mClearRecents.setAlpha(1f);
+                        }
+                    })
+                    .start();
 
                 dismissAllTasksAnimated();
             }
