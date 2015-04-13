@@ -926,10 +926,6 @@
     <!-- Hide quick settings tile confirmation button -->
     <string name="quick_settings_reset_confirmation_button">Hide</string>
 
-    <!-- NavBar tile -->
-    <string name="quick_settings_navbar_on">NavBar On</string>
-    <string name="quick_settings_navbar_off">NavBar Off</string>
-
     <!-- App Circle Bar tile -->
     <string name="quick_settings_appcirclebar_on">AppCircleBar On</string>
     <string name="quick_settings_appcirclebar_off">AppCircleBar Off</string>
