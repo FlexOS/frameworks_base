@@ -52,8 +52,6 @@ public class KeyguardPINView extends KeyguardPinBasedInputView {
 
     private static List<Integer> sNumbers = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 0);
 
-    private static List<Integer> sNumbers = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 0);
-
     public KeyguardPINView(Context context) {
         this(context, null);
     }
@@ -108,9 +106,35 @@ public class KeyguardPINView extends KeyguardPinBasedInputView {
         mRow2 = (ViewGroup) findViewById(R.id.row2);
         mRow3 = (ViewGroup) findViewById(R.id.row3);
         mDivider = findViewById(R.id.divider);
+        mViews = new View[][]{
+                new View[]{
+                        mRow0, null, null
+                },
+                new View[]{
+                        findViewById(R.id.key1), findViewById(R.id.key2),
+                        findViewById(R.id.key3)
+                },
+                new View[]{
+                        findViewById(R.id.key4), findViewById(R.id.key5),
+                        findViewById(R.id.key6)
+                },
+                new View[]{
+                        findViewById(R.id.key7), findViewById(R.id.key8),
+                        findViewById(R.id.key9)
+                },
+                new View[]{
+                        null, findViewById(R.id.key0), findViewById(R.id.key_enter)
+                },
+                new View[]{
+                        null, mEcaView, null
+                }};
 
         boolean quickUnlock = (Settings.System.getInt(getContext().getContentResolver(),
                 Settings.System.LOCKSCREEN_QUICK_UNLOCK_CONTROL, 0) == 1);
+        if (quickUnlock) {
+            View v = findViewById(R.id.key_enter);
+            v.setVisibility(View.INVISIBLE);
+        }
 
         boolean scramblePin = (Settings.System.getInt(getContext().getContentResolver(),
                 Settings.System.LOCKSCREEN_PIN_SCRAMBLE_LAYOUT, 0) == 1);
@@ -223,3 +247,4 @@ public class KeyguardPINView extends KeyguardPinBasedInputView {
         }
     }
 }
+
