@@ -26,7 +26,4 @@
     <!-- Screen record notification error title -->
     <string name="screenrecord_notif_error">Unable to record screen</string>
 
-    <!-- Power menu on navring targets -->
-    <string name="navring_action_power_menu">Power Menu</string>
-
 </resources>
