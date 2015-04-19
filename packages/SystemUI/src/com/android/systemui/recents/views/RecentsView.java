@@ -20,11 +20,11 @@ import android.app.ActivityManager;
 import android.app.ActivityManager.MemoryInfo;
 import android.app.ActivityOptions;
 import android.app.TaskStackBuilder;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.ContentResolver;
 import android.content.res.Resources;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
@@ -283,8 +283,8 @@ public class RecentsView extends FrameLayout implements TaskStackView.TaskStackV
     }
 
     public void startHideClearRecentsButtonAnimation() {
-        if (mClearRecents != null) {
-            mClearRecents.animate()
+        if (mFloatingButton != null) {
+            mFloatingButton.animate()
                 .alpha(0f)
                 .setStartDelay(0)
                 .setUpdateListener(null)
@@ -293,8 +293,8 @@ public class RecentsView extends FrameLayout implements TaskStackView.TaskStackV
                 .withEndAction(new Runnable() {
                     @Override
                     public void run() {
-                        mClearRecents.setVisibility(View.GONE);
-                        mClearRecents.setAlpha(1f);
+                        mFloatingButton.setVisibility(View.GONE);
+                        mFloatingButton.setAlpha(1f);
                     }
                 })
                 .start();
@@ -391,7 +391,17 @@ public class RecentsView extends FrameLayout implements TaskStackView.TaskStackV
                     Settings.System.RECENTS_CLEAR_ALL_LOCATION, Constants.DebugFlags.App.RECENTS_CLEAR_ALL_BOTTOM_RIGHT);
             FrameLayout.LayoutParams params = (FrameLayout.LayoutParams)
                     mFloatingButton.getLayoutParams();
-            params.topMargin = taskStackBounds.top;
+            boolean isLandscape = mContext.getResources().getConfiguration().orientation
+                == Configuration.ORIENTATION_LANDSCAPE;
+            if (mSearchBar == null || isLandscape) {
+                params.topMargin = mContext.getResources().
+                    getDimensionPixelSize(com.android.internal.R.dimen.status_bar_height);
+            } else {
+                params.topMargin = mContext.getResources().
+                    getDimensionPixelSize(com.android.internal.R.dimen.status_bar_height)
+                        + searchBarSpaceBounds.height();
+            }
+
             if (mSearchBar != null && (searchBarSpaceBounds.width() > taskViewWidth)) {
                 // Adjust to the search bar
                 params.rightMargin = width - searchBarSpaceBounds.right;
@@ -403,6 +413,7 @@ public class RecentsView extends FrameLayout implements TaskStackView.TaskStackV
                 if (params.rightMargin < mClearRecents.getWidth())
                     params.rightMargin = width - taskStackBounds.right;
             }
+
             switch (clearRecentsLocation) {
                 case Constants.DebugFlags.App.RECENTS_CLEAR_ALL_TOP_LEFT:
                     params.gravity = Gravity.TOP | Gravity.LEFT;
@@ -475,9 +486,14 @@ public class RecentsView extends FrameLayout implements TaskStackView.TaskStackV
     }
 
     public void noUserInteraction() {
-        if (mClearRecents != null) {
-            mClearRecents.setVisibility(View.VISIBLE);
+        if (mFloatingButton != null) {
+            mFloatingButton.setVisibility(View.VISIBLE);
         }
+    }
+
+    private boolean dismissAll() {
+        return Settings.System.getInt(mContext.getContentResolver(),
+            Settings.System.RECENTS_CLEAR_ALL_DISMISS_ALL, 1) == 1;
     }
 
     @Override
@@ -486,26 +502,15 @@ public class RecentsView extends FrameLayout implements TaskStackView.TaskStackV
         mFloatingButton = ((View)getParent()).findViewById(R.id.floating_action_button);
         mClearRecents = ((View)getParent()).findViewById(R.id.clear_recents);
         mClearRecents.setOnClickListener(new View.OnClickListener() {
+
             public void onClick(View v) {
-                if (mClearRecents.getAlpha() != 1f) {
+                if (mFloatingButton.getAlpha() != 1f) {
                     return;
                 }
 
-                // Hide clear recents before dismiss all tasks
-                mClearRecents.animate()
-                    .alpha(0f)
-                    .setStartDelay(0)
-                    .setUpdateListener(null)
-                    .setInterpolator(mConfig.fastOutSlowInInterpolator)
-                    .setDuration(mConfig.taskViewRemoveAnimDuration)
-                    .withEndAction(new Runnable() {
-                        @Override
-                        public void run() {
-                            mClearRecents.setVisibility(View.GONE);
-                            mClearRecents.setAlpha(1f);
-                        }
-                    })
-                    .start();
+                if (dismissAll()) {
+                    startHideClearRecentsButtonAnimation();
+                }
 
                 dismissAllTasksAnimated();
                 EventLog.writeEvent(EventLogTags.SYSUI_RECENTS_EVENT, 4 /* closed all tasks */);
