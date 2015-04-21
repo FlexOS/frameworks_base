@@ -3832,6 +3832,12 @@ public final class Settings {
         public static final String HEADS_UP_BLACKLIST_VALUES = "heads_up_blacklist_values";
 
         /**
+         * Statusbar Flex logo color setting
+         * @hide
+         */
+        public static final String STATUS_BAR_FLEX_LOGO_COLOR = "status_bar_flex_logo_color";
+
+        /**
          * Defines the global heads up notification decay
          *
          * @hide
@@ -3935,6 +3941,12 @@ public final class Settings {
          * @hide
          */
         public static final String APP_CIRCLE_BAR_SHOW_TRIGGER = "app_circle_bar_show_trigger";
+
+        /**
+         * Statusbar Flex logo
+         * @hide
+         */
+        public static final String STATUS_BAR_FLEX_LOGO = "status_bar_flex_logo";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
