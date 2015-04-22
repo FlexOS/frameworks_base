@@ -808,6 +808,7 @@ public class VolumePanel extends Handler implements DemoMode {
                 }
             }
         }
+        updateZenPanelVisible();
     }
 
     private void diappearVolumePanel() {
@@ -1064,7 +1065,8 @@ public class VolumePanel extends Handler implements DemoMode {
     }
 
     private void updateZenPanelVisible() {
-        setZenPanelVisible(mZenModeAvailable && isNotificationOrRing(mActiveStreamType));
+        setZenPanelVisible(mZenModeAvailable && 
+            (isNotificationOrRing(mActiveStreamType) || mExtendedPanelExpanded));
     }
 
     public void postVolumeChanged(int streamType, int flags) {
@@ -1321,7 +1323,6 @@ public class VolumePanel extends Handler implements DemoMode {
         if (!isShowing()) {
             int stream = (streamType == STREAM_REMOTE_MUSIC) ? -1 : streamType;
             // when the stream is for remote playback, use -1 to reset the stream type evaluation
-            mAudioManager.forceVolumeControlStream(stream);
             if (mDialog != null) {
                 mDialog.show();
                 Runnable r = new Runnable() {
@@ -1349,7 +1350,6 @@ public class VolumePanel extends Handler implements DemoMode {
             if (stream != STREAM_MASTER) {
                 mAudioManager.forceVolumeControlStream(stream);
             }
-            mDialog.show();
             if (mCallback != null) {
                 mCallback.onVisible(true);
             }
