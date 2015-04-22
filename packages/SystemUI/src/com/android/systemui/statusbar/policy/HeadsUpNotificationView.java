@@ -18,10 +18,13 @@ package com.android.systemui.statusbar.policy;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.drawable.Drawable;
 import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.graphics.Outline;
 import android.graphics.Rect;
+import android.os.UserHandle;
+import android.provider.Settings;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.ArrayMap;
@@ -78,6 +81,7 @@ public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.
     private static int sRoundedRectCornerRadius = 0;
 
     private boolean mTouchOutside;
+    private int mBackground;
 
     public HeadsUpNotificationView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -112,8 +116,8 @@ public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.
         return mContentHolder;
     }
 
-    public boolean showNotification(NotificationData.Entry headsUp) {
-        if (mHeadsUp != null && headsUp != null && !mHeadsUp.key.equals(headsUp.key)) {
+    public boolean showNotification(NotificationData.Entry headsUp, int background) {
+        if (mHeadsUp != null && headsUp != null && !mHeadsUp.key.equals(headsUp.key && mBackground = background)) {
             // bump any previous heads up back to the shade
             release();
         }
@@ -142,6 +146,12 @@ public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.
             mHeadsUp.row.setHeadsUp(true);
             mHeadsUp.row.setHideSensitive(
                     false, false /* animated */, 0 /* delay */, 0 /* duration */);
+            // set background
+            if (mBackground != 0x00ffffff) {
+                setHeadsUpCustomBg();
+            } else {
+                setHeadsUpDefaultBg();
+            }
             mContentHolder.setX(0);
             mContentHolder.setVisibility(View.VISIBLE);
             mContentHolder.setAlpha(mMaxAlpha);
@@ -158,8 +168,35 @@ public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.
 
             // 3. Set alarm to age the notification off
             mBar.resetHeadsUpDecayTimer();
+            // set content holder background based on whether notification
+            // color is custom or default
+            mContentHolder.setBackgroundResource(0);
+            if (mBackground == 0x00ffffff) {
+                mContentHolder.setBackgroundResource(R.drawable.heads_up_window_bg);
         }
         return true;
+    }
+
+   private void setHeadsUpCustomBg() {
+            View expanded = mHeadsUp.expanded;
+            View expandedBig = mHeadsUp.getBigContentView();
+            if (expanded !=null) {
+                expanded.setBackgroundColor(mBackground);
+            }
+            if (expandedBig != null) {
+                expandedBig.setBackgroundColor(mBackground);
+            }
+    }
+
+    private void setHeadsUpDefaultBg() {
+            View expanded = mHeadsUp.expanded;
+            View expandedBig = mHeadsUp.getBigContentView();
+            if (expanded !=null) {
+                expanded.setBackgroundColor(0x00000000);
+            }
+            if (expandedBig != null) {
+                expandedBig.setBackgroundColor(0x00000000);
+            }
     }
 
     @Override
@@ -269,6 +306,9 @@ public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.
         mContentHolder = (ViewGroup) findViewById(R.id.content_holder);
         mContentHolder.setOutlineProvider(CONTENT_HOLDER_OUTLINE_PROVIDER);
 
+        mBackground = Settings.System.getIntForUser(
+            mContext.getContentResolver(), Settings.System.HEADS_UP_BG_COLOR,
+            0x00ffffff, UserHandle.USER_CURRENT);
         mSnoozeLengthMs = Settings.Global.getInt(mContext.getContentResolver(),
                 SETTING_HEADS_UP_SNOOZE_LENGTH_MS, mDefaultSnoozeLengthMs);
         mSettingsObserver = new ContentObserver(getHandler()) {
@@ -289,7 +329,7 @@ public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.
 
         if (mHeadsUp != null) {
             // whoops, we're on already!
-            showNotification(mHeadsUp);
+            showNotification(mHeadsUp, mBackground);
         }
 
         getViewTreeObserver().addOnComputeInternalInsetsListener(this);

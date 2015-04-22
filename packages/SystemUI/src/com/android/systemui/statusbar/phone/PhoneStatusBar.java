@@ -18,7 +18,6 @@
 
 package com.android.systemui.statusbar.phone;
 
-
 import static android.app.StatusBarManager.NAVIGATION_HINT_BACK_ALT;
 import static android.app.StatusBarManager.NAVIGATION_HINT_IME_SHOWN;
 import static android.app.StatusBarManager.WINDOW_STATE_HIDDEN;
@@ -424,6 +423,10 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
     // Battery saver bar color
     private boolean mBatterySaverBarColor;
 
+    // Heads Up BG Color / Text
+    private int mHeadsUpCustomBg;
+    private int mHeadsUpCustomText;
+
     // for disabling the status bar
     int mDisabled = 0;
 
@@ -450,6 +453,25 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             mLinger = BRIGHTNESS_CONTROL_LINGER_THRESHOLD + 1;
         }
     };
+
+    @Override
+    public void onChange(boolean selfChange, Uri uri) {
+       super.onChange(selfChange, uri);
+       if (uri.equals(Settings.System.getUriFor(
+                Settings.System.HEADS_UP_BG_COLOR))) {
+                mHeadsUpCustomBg = Settings.System.getIntForUser(
+                    mContext.getContentResolver(),
+                    Settings.System.HEADS_UP_BG_COLOR, 0x00ffffff,
+                    UserHandle.USER_CURRENT);
+        } else if (uri.equals(Settings.System.getUriFor(
+                Settings.System.HEADS_UP_TEXT_COLOR))) {
+                mHeadsUpCustomText = Settings.System.getIntForUser(
+                    mContext.getContentResolver(),
+                    Settings.System.HEADS_UP_TEXT_COLOR, 0,
+                    UserHandle.USER_CURRENT);
+            }
+            update();
+        }
 
     // Custom Recents Long Press
     // - Tracks Event state for custom (user-configurable) Long Presses.
@@ -489,6 +511,12 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
                     false, this, UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.HEADS_UP_TOUCH_OUTSIDE),
+                    false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.HEADS_UP_BG_COLOR),
+                    false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.HEADS_UP_TEXT_COLOR),
                     false, this, UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.STATUS_BAR_FLEX_LOGO),
@@ -1750,11 +1778,17 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
     @Override
     public void addNotification(StatusBarNotification notification, RankingMap ranking) {
         if (DEBUG) Log.d(TAG, "addNotification key=" + notification.getKey());
-        if (mUseHeadsUp && shouldInterrupt(notification) && !isExpandedVisible()) {
+        if (mUseHeadsUp && shouldInterrupt(notification) && !isExpandedVisible() && mHeadsUpCustomBg) {
             if (DEBUG) Log.d(TAG, "launching notification in heads up mode");
             Entry interruptionCandidate = new Entry(notification, null);
             ViewGroup holder = mHeadsUpNotificationView.getHolder();
-            if (inflateViewsForHeadsUp(interruptionCandidate, holder)) {
+        // get text color value
+        mHeadsUpCustomText = Settings.System.getIntForUser(
+            mContext.getContentResolver(),
+            Settings.System.HEADS_UP_TEXT_COLOR, 0,
+            UserHandle.USER_CURRENT);
+            if (inflateViewsForHeadsUp(interruptionCandidate,
+                    holder, mHeadsUpCustomText)) {
                 // 1. Populate mHeadsUpNotificationView
                 mHeadsUpNotificationView.showNotification(interruptionCandidate);
 
@@ -1767,6 +1801,12 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         if (shadeEntry == null) {
             return;
         }
+
+        // get background value
+        mHeadsUpCustomBg = Settings.System.getIntForUser(
+            mContext.getContentResolver(),
+            Settings.System.HEADS_UP_BG_COLOR, 0x00ffffff,
+            UserHandle.USER_CURRENT);
 
         if (notification.getNotification().fullScreenIntent != null) {
             // Stop screensaver if the notification has a full-screen intent.
