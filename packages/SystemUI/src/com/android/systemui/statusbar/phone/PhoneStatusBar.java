@@ -68,7 +68,6 @@ import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
-import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
@@ -374,15 +373,6 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
 
     private boolean mShowCarrierInPanel = false;
 
-    // Flex logo
-    private boolean mFlexLogo;
-    private int mFlexLogoColor;
-    private ImageView flexLogo;
-
-    // battery
-    private BatteryMeterView mBatteryView;
-    private BatteryLevelTextView mBatteryLevel;
-
     // position
     int[] mPositionTmp = new int[2];
     boolean mExpandedVisible;
@@ -490,12 +480,6 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.HEADS_UP_TOUCH_OUTSIDE),
                     false, this, UserHandle.USER_ALL);
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.STATUS_BAR_FLEX_LOGO),
-                    false, this, UserHandle.USER_ALL);
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.STATUS_BAR_FLEX_LOGO_COLOR),
-                    false, this, UserHandle.USER_ALL);
             update();
         }
 
@@ -577,14 +561,8 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
 
             mBatterySaverBarColor = Settings.System.getInt(
                     resolver, Settings.System.BATTERY_SAVER_MODE_COLOR, 1) == 1;
-            mFlexLogo = Settings.System.getIntForUser(resolver,
-                    Settings.System.STATUS_BAR_FLEX_LOGO, 0, mCurrentUserId) == 1;
-            mFlexLogoColor = Settings.System.getIntForUser(resolver,
-                    Settings.System.STATUS_BAR_FLEX_LOGO_COLOR, 0xFFFFFFFF, mCurrentUserId);
-            showFlexLogo(mFlexLogo, mFlexLogoColor);
         }
     }
-
 
     void updateClockView() {
         mClockView.setVisibility(View.GONE);
@@ -3823,16 +3801,6 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             }
         }
     };
-
-    public void showFlexLogo(boolean show, int color) {
-        if (mStatusBarView == null) return;
-        ContentResolver resolver = mContext.getContentResolver();
-        flexLogo = (ImageView) mStatusBarView.findViewById(R.id.flex_logo);
-        flexLogo.setColorFilter(color, Mode.SRC_IN);
-        if (flexLogo != null) {
-            flexLogo.setVisibility(show ? (mFlexLogo ? View.VISIBLE : View.GONE) : View.GONE);
-        }
-    }
 
     private BroadcastReceiver mPackageBroadcastReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
