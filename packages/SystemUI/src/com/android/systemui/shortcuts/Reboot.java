@@ -22,7 +22,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
 
-import com.android.internal.util.temasek.Action;
+import com.android.internal.util.flex.Action;
 
 public class Reboot extends Activity  {
 
