@@ -3817,13 +3817,6 @@ public final class Settings {
         public static final String STORAGE_MOUNT_NOTIFICATION = "storage_mount_notification";
 
         /**
-         * Whether "None" mode will act as "Silent"
-         * Effectively allowing alarms to always use the alarm stream volume when true.
-         * @hide
-         */
-        public static final String NONE_IS_SILENT = "none_is_silent";
-
-        /**
          * Heads Up Notifications
          *
          * @hide
@@ -3957,6 +3950,8 @@ public final class Settings {
                 "volume_keys_control_ring_stream";
 
         /**
+=======
+>>>>>>> parent of 973e858... Return of Silent mode (1/2)
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
          *
