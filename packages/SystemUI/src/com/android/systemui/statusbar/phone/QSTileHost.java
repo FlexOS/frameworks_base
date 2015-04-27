@@ -46,7 +46,7 @@ import com.android.systemui.qs.tiles.CompassTile;
 import com.android.systemui.qs.tiles.DataTile;
 import com.android.systemui.qs.tiles.DdsTile;
 import com.android.systemui.qs.tiles.FlashlightTile;
-import com.android.systemui.qs.tiles.HeadsUpTile;
+import com.android.systemui.qs.tiles.HeadsupTile;
 import com.android.systemui.qs.tiles.HotspotTile;
 import com.android.systemui.qs.tiles.IntentTile;
 import com.android.systemui.qs.tiles.LiveDisplayTile;
@@ -337,12 +337,12 @@ public class QSTileHost implements QSTile.Host {
                 return new LiveDisplayTile(this);
             case QSConstants.TILE_USB_TETHER:
                 return new UsbTetherTile(this);
-            case QSConstants.TILE_HEADS_UP:
-                return new HeadsUpTile(this);
             case QSConstants.TILE_NAVBAR:
                 return new NavBarTile(this);
             case QSConstants.TILE_MUSIC:
                 return new MusicTile(this);
+            case QSConstants.TILE_HEADS_UP:
+                return new HeadsupTile(this);
             default:
                 throw new IllegalArgumentException("Bad tile spec: " + tileSpec);
         }
