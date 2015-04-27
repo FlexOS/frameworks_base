@@ -54,14 +54,9 @@ public class HeadsUpTile extends QSTile<QSTile.BooleanState> {
         refreshState();
     }
 
-    @Override
-    protected void handleLongClick() {
-        mHost.startSettingsActivity(NOTIFICATION_SETTINGS);
-    }
-
     private void setEnabled(boolean enabled) {
         Settings.Global.putInt(mContext.getContentResolver(),
-                Settings.Global.HEADS_UP_NOTIFICATIONS_ENABLED,
+                Settings.Global.HEADS_UP_NOTIFICATION,
                 enabled ? 1 : 0);
     }
 
