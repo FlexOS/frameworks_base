@@ -64,4 +64,10 @@
     <!-- Kill app toast -->
     <string name="app_killed_message">Destroyed</string>
 
+    <!-- Quick Settings Tiles -->		
+    <string name="quick_settings_heads_up_on">Heads up enabled</string>		
+    <string name="quick_settings_heads_up_off">No interruptions</string>
+    <string name="heads_up_enabled">Heads up notifications are enabled</string>
+    <string name="heads_up_disabled">Heads up notifications are disabled</string>
+
 </resources>
