@@ -65,4 +65,6 @@
     <!-- Kill app toast -->
     <string name="app_killed_message">Destroyed</string>
 
+    <string name="gestures_message">Draw your gesture here</string>
+
 </resources>
