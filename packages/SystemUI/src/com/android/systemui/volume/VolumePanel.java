@@ -606,7 +606,6 @@ public class VolumePanel extends Handler implements DemoMode {
                 mZenPanelExpanded = expanded;
                 updateTimeoutDelay();
                 resetTimeout();
-                updateStates();
             }
         });
     }
