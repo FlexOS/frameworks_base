@@ -160,7 +160,7 @@ public class QSPanel extends ViewGroup {
         if (mVibrator != null) {
             if (mVibrator.hasVibrator()) { mVibrator.vibrate(duration); }
         }
-
+	}
     /**
      * Use three or four columns.
      */
@@ -175,7 +175,6 @@ public class QSPanel extends ViewGroup {
             mNumberOfColumns = res.getInteger(R.integer.quick_settings_num_columns);
         }
         return mNumberOfColumns;
-
     }
 
     private void updateDetailText() {
