@@ -162,22 +162,7 @@ public class QSPanel extends ViewGroup {
             if (mVibrator.hasVibrator()) { mVibrator.vibrate(duration); }
         }
 	}
-    /**
-     * Use three or four columns.
-     */
-    private int useFourColumns() {
-        final Resources res = mContext.getResources();
-        mUseFourColumns = Settings.Secure.getInt(
-            mContext.getContentResolver(), Settings.Secure.QS_USE_FOUR_COLUMNS,
-                0) == 1;
-        if (mUseFourColumns) {
-            mNumberOfColumns = 4;
-        } else {
-            mNumberOfColumns = res.getInteger(R.integer.quick_settings_num_columns);
-        }
-        return mNumberOfColumns;
-    }
-
+   
     /**
      * Use three or four columns.
      */
