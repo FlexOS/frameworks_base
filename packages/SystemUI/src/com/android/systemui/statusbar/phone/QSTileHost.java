@@ -65,6 +65,7 @@ import com.android.systemui.qs.tiles.VisualizerTile;
 import com.android.systemui.qs.tiles.ScreenshotTile;
 import com.android.systemui.qs.tiles.ScreenTimeoutTile;
 import com.android.systemui.qs.tiles.NavBarTile;
+import com.android.systemui.qs.tiles.FlexControlTile;
 import com.android.systemui.qs.tiles.SyncTile;
 import com.android.systemui.qs.tiles.WifiTile;
 import com.android.systemui.settings.CurrentUserTracker;
@@ -289,6 +290,8 @@ public class QSTileHost implements QSTile.Host {
                 return new ColorInversionTile(this);
             case QSConstants.TILE_CELLULAR:
                 return new CellularTile(this);
+            case QSConstants.TILE_FLEX_CONTROL:
+                return new FlexControlTile(this);
             case QSConstants.TILE_AIRPLANE:
                 return new AirplaneModeTile(this);
             case QSConstants.TILE_ROTATION:

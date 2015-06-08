@@ -25,6 +25,7 @@ public class QSConstants {
     public static final String TILE_BLUETOOTH = "bt";
     public static final String TILE_INVERSION = "inversion";
     public static final String TILE_CELLULAR = "cell";
+    public static final String TILE_FLEX_CONTROL = "flex_control";
     public static final String TILE_AIRPLANE = "airplane";
     public static final String TILE_ROTATION = "rotation";
     public static final String TILE_FLASHLIGHT = "flashlight";
@@ -58,6 +59,7 @@ public class QSConstants {
     static {
         TILES_AVAILABLE.add(TILE_WIFI);
         TILES_AVAILABLE.add(TILE_BLUETOOTH);
+        TILES_AVAILABLE.add(TILE_FLEX_CONTROL);
         TILES_AVAILABLE.add(TILE_CELLULAR);
         TILES_AVAILABLE.add(TILE_AIRPLANE);
         TILES_AVAILABLE.add(TILE_ROTATION);
