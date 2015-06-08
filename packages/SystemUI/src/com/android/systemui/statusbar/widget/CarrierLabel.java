@@ -48,6 +48,7 @@ public class CarrierLabel extends TextView {
     private boolean mAttached;
     private static boolean isCN;
 
+    protected int mCarrierColor = com.android.internal.R.color.white;
     Handler mHandler;
 
     class SettingsObserver extends ContentObserver {
@@ -163,14 +164,13 @@ public class CarrierLabel extends TextView {
     }
 
     private void updateColor() {
-        ContentResolver resolver = mContext.getContentResolver();
-
-        int defaultColor = getResources().getColor(R.color.status_bar_clock_color);
-        int mCarrierColor = Settings.System.getInt(resolver,
-                Settings.System.STATUS_BAR_CARRIER_COLOR, defaultColor);
+        int newColor = 0;
+        mCarrierColor = Settings.System.getInt(mContext.getContentResolver(),
+                            Settings.System.STATUS_BAR_CARRIER_COLOR, newColor);
 
         if  (mCarrierColor == Integer.MIN_VALUE) {
-             mCarrierColor = defaultColor;
+             // flag to reset the color
+             mCarrierColor = newColor;
         }
         setTextColor(mCarrierColor);
     }
