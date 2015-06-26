@@ -16,6 +16,8 @@
 
 package com.android.systemui.statusbar;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ValueAnimator;
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -23,6 +25,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
@@ -32,6 +35,7 @@ import android.os.Handler;
 import android.os.PowerManager;
 import android.os.UserHandle;
 import android.provider.Settings;
+import android.support.v7.graphics.Palette;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -41,6 +45,8 @@ import com.android.keyguard.KeyguardUpdateMonitorCallback;
 import com.android.systemui.R;
 import com.android.systemui.cm.UserContentObserver;
 import com.android.systemui.statusbar.phone.PhoneStatusBar;
+import com.android.systemui.statusbar.policy.MediaMonitor;
+import com.android.systemui.statusbar.stack.NotificationStackScrollLayout;
 import com.pheelicks.visualizer.AudioData;
 import com.pheelicks.visualizer.FFTData;
 import com.pheelicks.visualizer.VisualizerView;
@@ -49,11 +55,13 @@ import com.pheelicks.visualizer.renderer.Renderer;
 /**
  * A view who contains media artwork.
  */
-public class BackDropView extends FrameLayout {
+public class BackDropView extends FrameLayout implements Palette.PaletteAsyncListener,
+        ValueAnimator.AnimatorUpdateListener {
     final static String TAG = BackDropView.class.getSimpleName();
     private static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
 
     private PhoneStatusBar mPhoneStatusBar;
+    private NotificationStackScrollLayout mStack;
 
     // the length to animate the visualizer in and out
     private static final int VISUALIZER_ANIMATION_DURATION_IN = 300;
@@ -66,22 +74,49 @@ public class BackDropView extends FrameLayout {
     private boolean mVisualizerEnabled;
     private boolean mPowerSaveModeEnabled;
     private SettingsObserver mSettingsObserver;
+    private boolean mTouching;
+    private MediaMonitor mMediaMonitor;
+    private Handler mHandler;
+    private LockscreenBarEqRenderer mBarRenderer;
+    private ValueAnimator mVisualizerColorAnimator;
 
     public BackDropView(Context context) {
         super(context);
+        init();
     }
 
     public BackDropView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        init();
     }
 
     public BackDropView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        init();
     }
 
     public BackDropView(Context context, AttributeSet attrs, int defStyleAttr,
                         int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+        init();
+    }
+
+    private void init() {
+        mHandler = new Handler();
+        mMediaMonitor = new MediaMonitor(mContext) {
+            @Override
+            public void onPlayStateChanged(boolean playing) {
+                if (playing) {
+                    if (mVisualizerColorAnimator != null && !mVisualizerColorAnimator.isStarted()) {
+                        mVisualizerColorAnimator.start();
+                    }
+                    requestVisualizer(true, 500);
+                } else {
+                    // user paused, hide visualizer to stop flash
+                    requestVisualizer(false, 0);
+                }
+            }
+        };
     }
 
     @Override
@@ -95,17 +130,15 @@ public class BackDropView extends FrameLayout {
         if (changedView == this && mOnVisibilityChangedRunnable != null) {
             mOnVisibilityChangedRunnable.run();
         }
-        if (!isShown()) {
-            requestVisualizer(false, 0);
-        }
     }
 
     public void setOnVisibilityChangedRunnable(Runnable runnable) {
         mOnVisibilityChangedRunnable = runnable;
     }
 
-    public void setService(PhoneStatusBar service) {
+    public void setService(PhoneStatusBar service, NotificationStackScrollLayout notificationStack) {
         mPhoneStatusBar = service;
+        mStack = notificationStack;
     }
 
     @Override
@@ -124,7 +157,6 @@ public class BackDropView extends FrameLayout {
         super.onDetachedFromWindow();
         mSettingsObserver.unobserve();
         mContext.unregisterReceiver(mReceiver);
-        requestVisualizer(false, 0);
     }
 
     @Override
@@ -145,32 +177,104 @@ public class BackDropView extends FrameLayout {
                 }, 0));
 
                 int bars = res.getInteger(R.integer.kg_visualizer_divisions);
-                mVisualizer.addRenderer(new LockscreenBarEqRenderer(bars, paint,
+                mBarRenderer = new LockscreenBarEqRenderer(bars, paint,
                         res.getInteger(R.integer.kg_visualizer_db_fuzz),
-                        res.getInteger(R.integer.kg_visualizer_db_fuzz_factor)));
+                        res.getInteger(R.integer.kg_visualizer_db_fuzz_factor));
+                mVisualizer.addRenderer(mBarRenderer);
             }
         }
         KeyguardUpdateMonitor.getInstance(mContext).registerCallback(mUpdateMonitorCallback);
+    }
+
+    public void updateVisualizerColor(Bitmap artwork) {
+        if (artwork != null) {
+            Palette.generateAsync(artwork, this);
+        } else {
+            if (mVisualizerColorAnimator != null) {
+                mVisualizerColorAnimator.cancel();
+            }
+            mVisualizerColorAnimator = ValueAnimator.ofObject(new ArgbEvaluator(),
+                    mBarRenderer.mPaint.getColor(),
+                    getResources().getColor(R.color.equalizer_fill_color)
+            );
+            mVisualizerColorAnimator.setStartDelay(500);
+            mVisualizerColorAnimator.setDuration(1000);
+            mVisualizerColorAnimator.addUpdateListener(this);
+            if (mMediaMonitor.isAnythingPlaying()) {
+                mVisualizerColorAnimator.start();
+            }
+        }
+    }
+
+    @Override
+    public void onGenerated(Palette palette) {
+        if (mVisualizerColorAnimator != null) {
+            mVisualizerColorAnimator.cancel();
+        }
+        mVisualizerColorAnimator = ValueAnimator.ofObject(new ArgbEvaluator(),
+                mBarRenderer.mPaint.getColor(),
+                palette.getLightVibrantColor(getResources().getColor(R.color.equalizer_fill_color))
+        );
+        mVisualizerColorAnimator.setStartDelay(500);
+        mVisualizerColorAnimator.setDuration(1000);
+        mVisualizerColorAnimator.addUpdateListener(this);
+        if (mMediaMonitor.isAnythingPlaying()) {
+            mVisualizerColorAnimator.start();
+        }
+    }
+
+    @Override
+    public void onAnimationUpdate(ValueAnimator animation) {
+        mBarRenderer.mPaint.setColor((Integer) animation.getAnimatedValue());
+    }
+
+    public void setTouching(boolean touching) {
+        if (DEBUG) Log.d(TAG, "setTouching() called with " + "touching = [" + touching + "]");
+        if (mTouching != touching) {
+            mTouching = touching;
+            if (mTouching) {
+                // immediately hide visualizer
+                requestVisualizer(false, 0);
+            } else {
+                // we want to avoid requesting the visualizer when something is paused right here
+                mHandler.postDelayed(mResumeVisualizerIfPlayingRunnable, 500);
+            }
+        }
     }
 
     public void requestVisualizer(boolean show, int delay) {
         if (mVisualizer == null || !mVisualizerEnabled || mPowerSaveModeEnabled) {
             return;
         }
-        removeCallbacks(mStartVisualizer);
-        removeCallbacks(mStopVisualizer);
-        if (DEBUG) Log.d(TAG, "requestVisualizer(show: " + show + ", delay: " + delay + ")");
+        mHandler.removeCallbacks(mStartVisualizer);
+        mHandler.removeCallbacks(mStopVisualizer);
+        if (DEBUG) Log.v(TAG, "requestVisualizer(show: " + show + ", delay: " + delay + ")");
         if (show && mScreenOn
                 && mPhoneStatusBar.getBarState() == StatusBarState.KEYGUARD
                 && !mPhoneStatusBar.isKeyguardFadingAway()
                 && !mPhoneStatusBar.isGoingToNotificationShade()
-                && mPhoneStatusBar.getCurrentMediaNotificationKey() != null) {
+                && !mPhoneStatusBar.isInLaunchTransition()
+                && !mPhoneStatusBar.isQsExpanded()
+                && mPhoneStatusBar.getCurrentMediaNotificationKey() != null
+                && mStack.getActivatedChild() == null
+                ) {
             if (DEBUG) Log.d(TAG, "--> starting visualizer");
-            postDelayed(mStartVisualizer, delay);
-        } else {
+            mHandler.postDelayed(mStartVisualizer, delay);
+        } else if (!show) {
             if (DEBUG) Log.d(TAG, "--> stopping visualizer");
-            postDelayed(mStopVisualizer, delay);
+            mHandler.postDelayed(mStopVisualizer, delay);
         }
+    }
+
+    private void haltVisualizer() {
+        if (mVisualizerColorAnimator != null) {
+            mVisualizerColorAnimator.end();
+            mVisualizerColorAnimator = null;
+        }
+        mHandler.removeCallbacks(mResumeVisualizerIfPlayingRunnable);
+        mHandler.removeCallbacks(mStartVisualizer);
+        mHandler.removeCallbacks(mStopVisualizer);
+        mHandler.post(mStopVisualizer);
     }
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -179,7 +283,11 @@ public class BackDropView extends FrameLayout {
             if (PowerManager.ACTION_POWER_SAVE_MODE_CHANGING.equals(intent.getAction())) {
                 mPowerSaveModeEnabled = intent.getBooleanExtra(PowerManager.EXTRA_POWER_SAVE_MODE,
                         false);
-                requestVisualizer(true, 0);
+                if (mPowerSaveModeEnabled) {
+                    mHandler.post(mStopVisualizer);
+                } else {
+                    mHandler.post(mResumeVisualizerIfPlayingRunnable);
+                }
             }
         }
     };
@@ -192,15 +300,7 @@ public class BackDropView extends FrameLayout {
             mVisualizer.animate()
                     .alpha(1f)
                     .setDuration(VISUALIZER_ANIMATION_DURATION_IN);
-            AsyncTask.execute(new Runnable() {
-                @Override
-                public void run() {
-                    if (mVisualizer != null && !mLinked) {
-                        mVisualizer.link(0);
-                        mLinked = true;
-                    }
-                }
-            });
+            AsyncTask.execute(mLinkVisualizerRunnable);
         }
     };
 
@@ -212,15 +312,36 @@ public class BackDropView extends FrameLayout {
             mVisualizer.animate()
                     .alpha(0f)
                     .setDuration(VISUALIZER_ANIMATION_DURATION_OUT);
-            AsyncTask.execute(new Runnable() {
-                @Override
-                public void run() {
-                    if (mVisualizer != null && mLinked) {
-                        mVisualizer.unlink();
-                        mLinked = false;
-                    }
-                }
-            });
+            AsyncTask.execute(mUninkVisualizerRunnable);
+        }
+    };
+
+    private final Runnable mLinkVisualizerRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (mVisualizer != null && !mLinked) {
+                mVisualizer.link(0);
+                mLinked = true;
+            }
+        }
+    };
+
+    private final Runnable mUninkVisualizerRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (mVisualizer != null && mLinked) {
+                mVisualizer.unlink();
+                mLinked = false;
+            }
+        }
+    };
+
+    private Runnable mResumeVisualizerIfPlayingRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (mMediaMonitor.isAnythingPlaying()) {
+                requestVisualizer(true, 250);
+            }
         }
     };
 
@@ -233,28 +354,36 @@ public class BackDropView extends FrameLayout {
                 @Override
                 public void onScreenTurnedOn() {
                     mScreenOn = true;
-                    requestVisualizer(true, 300);
+                    mHandler.postDelayed(mResumeVisualizerIfPlayingRunnable, 200);
                 }
 
                 @Override
                 public void onScreenTurnedOff(int why) {
                     mScreenOn = false;
-                    requestVisualizer(false, 0);
+                    haltVisualizer();
                 }
 
                 @Override
                 public void onKeyguardVisibilityChanged(boolean showing) {
+                    mMediaMonitor.setListening(showing);
+
                     if (!showing) {
-                        requestVisualizer(false, 0);
+                        haltVisualizer();
+                    } else if (mScreenOn) {
+                        // in case keyguard is toggled back on even though screen never went off
+                        mHandler.postDelayed(mResumeVisualizerIfPlayingRunnable, 200);
                     }
                 }
             };
 
-    private static class LockscreenBarEqRenderer extends Renderer {
+    private class LockscreenBarEqRenderer extends Renderer {
         private int mDivisions;
         private Paint mPaint;
         private int mDbFuzz;
         private int mDbFuzzFactor;
+
+        private boolean mDrawEmpty;
+        int mFramesSinceLastEmptyRender;
 
         /**
          * Renders the FFT data as a series of lines, in histogram form
@@ -283,20 +412,54 @@ public class BackDropView extends FrameLayout {
 
         @Override
         public void onRender(Canvas canvas, FFTData data, Rect rect) {
-            for (int i = 0; i < data.bytes.length / mDivisions; i++) {
-                mFFTPoints[i * 4] = i * 4 * mDivisions;
-                mFFTPoints[i * 4 + 2] = i * 4 * mDivisions;
-                byte rfk = data.bytes[mDivisions * i];
-                byte ifk = data.bytes[mDivisions * i + 1];
-                float magnitude = (rfk * rfk + ifk * ifk);
-                int dbValue = magnitude > 0 ? (int) (10 * Math.log10(magnitude)) : 0;
+            if (isDataEmpty(data)) {
+                mDrawEmpty = true;
+                mFramesSinceLastEmptyRender = 0;
+            } else {
+                mFramesSinceLastEmptyRender++;
+                for (int i = 0; i < data.bytes.length / mDivisions; i++) {
+                    mFFTPoints[i * 4] = i * 4 * mDivisions;
+                    mFFTPoints[i * 4 + 2] = i * 4 * mDivisions;
+                    byte rfk = data.bytes[mDivisions * i];
+                    byte ifk = data.bytes[mDivisions * i + 1];
+                    float magnitude = (rfk * rfk + ifk * ifk);
+                    int dbValue = magnitude > 0 ? (int) (10 * Math.log10(magnitude)) : 0;
 
-                mFFTPoints[i * 4 + 1] = rect.height();
-                mFFTPoints[i * 4 + 3] = rect.height() - ((dbValue * mDbFuzzFactor) + mDbFuzz);
+                    mFFTPoints[i * 4 + 1] = rect.height();
+                    mFFTPoints[i * 4 + 3] = rect.height() - ((dbValue * mDbFuzzFactor) + mDbFuzz);
+                }
             }
 
-            canvas.drawLines(mFFTPoints, mPaint);
+             /*
+              * When transitioning songs, we get a bunch of empty frames, followed by 1 frame
+              * as the track switch occurs, then some more empty frames until the song starts.
+              *
+              * We skip the first frame in between empty frames here to avoid drawing
+              * anything when we're switching songs
+              */
+            mDrawEmpty = mFramesSinceLastEmptyRender == 1;
+
+            if (mFramesSinceLastEmptyRender == 1) {
+                //
+                mDrawEmpty = true;
+            }
+            if (mDrawEmpty) {
+                mVisualizer.setDrawingEnabled(false);
+            } else {
+                mVisualizer.setDrawingEnabled(true);
+                canvas.drawLines(mFFTPoints, mPaint);
+            }
         }
+
+        private boolean isDataEmpty(FFTData data) {
+            for (int i = 0; i < data.bytes.length; i++) {
+                if (data.bytes[i] != 0) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
     }
 
     private class SettingsObserver extends UserContentObserver {
